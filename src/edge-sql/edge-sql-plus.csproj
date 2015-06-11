@@ -7,8 +7,8 @@
     <ProjectGuid>{C64EE1C0-8A26-426E-B955-B46BC6C13055}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>edge_sql</RootNamespace>
-    <AssemblyName>edge-sql</AssemblyName>
+    <RootNamespace>edge_sql_plus</RootNamespace>
+    <AssemblyName>edge-sql-plus</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
