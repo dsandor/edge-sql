@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Threading.Tasks;
@@ -147,7 +147,8 @@ public class EdgeCompiler
         using (SqlDataReader reader = await command.ExecuteReaderAsync(CommandBehavior.CloseConnection))
         {
             IDataRecord record = (IDataRecord)reader;
-            while (reader.HasRows)
+            // try to process all result sets, even if they are empty
+            while (true)
             {
                 List<object> rows = new List<object>();
                 while (await reader.ReadAsync())
@@ -184,7 +185,8 @@ public class EdgeCompiler
 
                 recordsets.Add(rows);
 
-                reader.NextResult();
+                // Break if no more results
+                if (!reader.NextResult()) break;
             }
 
             if (recordsets.Count == 1)
