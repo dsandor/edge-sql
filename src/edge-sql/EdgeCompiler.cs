@@ -55,7 +55,7 @@ public class EdgeCompiler
         {
             foreach (KeyValuePair<string, object> parameter in parameters)
             {
-                if (parameter.Value.GetType() == typeof(ExpandoObject))
+                if (parameter.Value != null && parameter.Value.GetType() == typeof(ExpandoObject))
                 {
                     if (((IDictionary<string, object>)parameter.Value).ContainsKey("UdtType"))
                     {
