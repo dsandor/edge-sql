@@ -160,6 +160,8 @@ public class EdgeCompiler
                     for (int i = 0; i < record.FieldCount; i++)
                     {
                         Type type = record.GetFieldType(i);
+                        var sqlType = record.GetDataTypeName(i).ToLower();
+                        
                         if (resultRecord[i] is System.DBNull)
                         {
                             resultRecord[i] = null;
@@ -168,7 +170,32 @@ public class EdgeCompiler
                         {
                             resultRecord[i] = Convert.ToBase64String((byte[])resultRecord[i]);
                         }
-                        else if (type == typeof(Guid) || type == typeof(DateTime))
+                        else if (sqlType.Equals("time"))
+                        {
+                            var time = ((DateTime)resultRecord[i]);
+                            resultRecord[i] = time.ToString("HH:mm:ss.fffffff");
+                        }
+                        else if (sqlType.Equals("date"))
+                        {
+                            var date = ((DateTime) resultRecord[i]);
+                            resultRecord[i] = date.ToString("yyyy-MM-dd");
+                        }
+                        else if (sqlType.Equals("datetimeoffset"))
+                        {
+                            var date = ((DateTime)resultRecord[i]);
+                            resultRecord[i] = date.ToString("yyyy-MM-ddTHH:mm:ss.fffffff");
+                        }
+                        else if (sqlType.Equals("datetime") || sqlType.Equals("datetime2") || sqlType.Equals("smalldatetime"))
+                        {
+                            var date = ((DateTime) resultRecord[i]);
+                            resultRecord[i] = date.ToString("yyyy-MM-ddTHH:mm:ss.fffffff");
+                        }
+                        else if (type == typeof(DateTime))
+                        {
+                            var date = ((DateTime) resultRecord[i]);
+                            resultRecord[i] = date.ToString("yyyy-MM-ddTHH:mm:ss.fffffff");
+                        }
+                        else if (type == typeof(Guid))
                         {
                             resultRecord[i] = resultRecord[i].ToString();
                         }
