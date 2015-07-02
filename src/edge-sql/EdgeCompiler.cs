@@ -63,7 +63,14 @@ public class EdgeCompiler
 
                         var udtType = dictionary["UdtType"].ToString();
                         var rows = dictionary["Rows"];
-                        var sqlDataRecords = CreateSqlDataRecords((IEnumerable<object>)rows);
+                        var columnTypes = new List<string>();
+
+                        if (dictionary.ContainsKey("ColumnTypes"))
+                        {
+                            columnTypes.AddRange((string[])dictionary["ColumnTypes"]);
+                        }
+
+                        var sqlDataRecords = CreateSqlDataRecords((IEnumerable<object>)rows, columnTypes);
 
                         var commandParameter = command.Parameters.AddWithValue(parameter.Key, sqlDataRecords);
                         commandParameter.SqlDbType = SqlDbType.Structured;
@@ -101,8 +108,9 @@ public class EdgeCompiler
         return table;
     }
 
-    private IEnumerable<SqlDataRecord> CreateSqlDataRecords(IEnumerable<object> values)
+    private IEnumerable<SqlDataRecord> CreateSqlDataRecords(IEnumerable<object> values, IList<string> columnTypes)
     {
+        SqlMetaData[] metaData;
         var sampleFirstRow = values.FirstOrDefault();
 
         if (sampleFirstRow == null) yield break;
@@ -111,12 +119,38 @@ public class EdgeCompiler
 
         var keyArray = row.Keys.ToArray<string>();
 
-        SqlMetaData[] metaData = new SqlMetaData[row.Keys.Count];
-
-        for (int i = 0; i < keyArray.Length; i++)
+        if (columnTypes != null && columnTypes.Count > 0)
         {
-            metaData[i] = new SqlMetaData(keyArray[i], GetSqlDbType(row[keyArray[i]].GetType()));
+            metaData = new SqlMetaData[columnTypes.Count];
+
+            if (columnTypes.Count != keyArray.Length)
+            {
+                throw new Exception(string.Format("Column types count of {0} should match column length of {1}", columnTypes.Count, keyArray.Length));
+            }
+
+            for (int i = 0; i < keyArray.Length; i++)
+            {
+                SqlDbType sqlDbType;
+                bool parsedEnum = Enum.TryParse<SqlDbType>(columnTypes[i], out sqlDbType);
+
+                if (!parsedEnum)
+                {
+                    throw new Exception(string.Format("Column type: {0} could not be parsed into a SqlDbType.", columnTypes[i]));
+                }
+
+                metaData[i] = new SqlMetaData(keyArray[i], sqlDbType);
+            }
         }
+        else
+        {
+            metaData = new SqlMetaData[row.Keys.Count];
+
+            for (int i = 0; i < keyArray.Length; i++)
+            {
+                metaData[i] = new SqlMetaData(keyArray[i], GetSqlDbType(row[keyArray[i]].GetType()));
+            }
+        }
+        
 
         SqlDataRecord record = new SqlDataRecord(metaData);
 
