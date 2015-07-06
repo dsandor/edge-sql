@@ -67,7 +67,9 @@ public class EdgeCompiler
 
                         if (dictionary.ContainsKey("ColumnTypes"))
                         {
-                            columnTypes.AddRange((string[])dictionary["ColumnTypes"]);
+                            var strings = Array.ConvertAll<object, string>((object[])dictionary["ColumnTypes"], obj => obj.ToString());
+
+                            columnTypes.AddRange(strings);
                         }
 
                         var sqlDataRecords = CreateSqlDataRecords((IEnumerable<object>)rows, columnTypes);
@@ -138,7 +140,32 @@ public class EdgeCompiler
                     throw new Exception(string.Format("Column type: {0} could not be parsed into a SqlDbType.", columnTypes[i]));
                 }
 
-                metaData[i] = new SqlMetaData(keyArray[i], sqlDbType);
+                if (sqlDbType == SqlDbType.Decimal)
+                {
+                    metaData[i] = new SqlMetaData(keyArray[i], sqlDbType, 28, 16);
+                }
+                else
+                {
+                    metaData[i] = new SqlMetaData(keyArray[i], sqlDbType);
+                }
+            }
+
+            SqlDataRecord record = new SqlDataRecord(metaData);
+
+            foreach (IDictionary<string, object> value in values)
+            {
+                object[] valuesArray = new object[value.Values.Count];
+
+                for (int i = 0; i < valuesArray.Length; i++)
+                {
+                    var clrType = GetClrType(metaData[i].SqlDbType);
+
+                    valuesArray[i] = Convert.ChangeType(value[keyArray[i]], Nullable.GetUnderlyingType(clrType));
+                }
+
+                record.SetValues(valuesArray);
+
+                yield return record;
             }
         }
         else
@@ -149,15 +176,14 @@ public class EdgeCompiler
             {
                 metaData[i] = new SqlMetaData(keyArray[i], GetSqlDbType(row[keyArray[i]].GetType()));
             }
-        }
-        
 
-        SqlDataRecord record = new SqlDataRecord(metaData);
+            SqlDataRecord record = new SqlDataRecord(metaData);
 
-        foreach (IDictionary<string, object> value in values)
-        {
-            record.SetValues(value.Values.ToArray<object>());
-            yield return record;
+            foreach (IDictionary<string, object> value in values)
+            {
+                record.SetValues(value.Values.ToArray<object>());
+                yield return record;
+            }
         }
     }
 
