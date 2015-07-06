@@ -12,7 +12,7 @@
       "url": "http://www.buildsucceeded.com"
     }
   ],
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "edge-sql-plus: based on edge-sql with some advanced stored procedure support such as TVP and multiple result sets.",
   "tags" : ["edge", "net", "clr", "c#", "managed", ".net", "ado.net", "multiple record set", "table-valued parameter", "sql"],
   "main": "./lib/edge-sql.js",
