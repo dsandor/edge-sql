@@ -144,6 +144,10 @@ public class EdgeCompiler
                 {
                     metaData[i] = new SqlMetaData(keyArray[i], sqlDbType, 28, 16);
                 }
+                else if (sqlDbType == SqlDbType.VarChar)
+                {
+                    metaData[i] = new SqlMetaData(keyArray[i], sqlDbType, 4000);
+                }
                 else
                 {
                     metaData[i] = new SqlMetaData(keyArray[i], sqlDbType);
@@ -159,8 +163,17 @@ public class EdgeCompiler
                 for (int i = 0; i < valuesArray.Length; i++)
                 {
                     var clrType = GetClrType(metaData[i].SqlDbType);
+                    var underlyingType = Nullable.GetUnderlyingType(clrType);
+                    var propertyValue = value[keyArray[i]];
 
-                    valuesArray[i] = Convert.ChangeType(value[keyArray[i]], Nullable.GetUnderlyingType(clrType));
+                    if (underlyingType != null && propertyValue != null)
+                    {
+                        valuesArray[i] = Convert.ChangeType(propertyValue, underlyingType);
+                    }
+                    else
+                    {
+                        valuesArray[i] = propertyValue;
+                    }
                 }
 
                 record.SetValues(valuesArray);
